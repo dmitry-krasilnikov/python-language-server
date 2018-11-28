@@ -4,8 +4,11 @@ import collections
 import json
 import logging
 import sys
+from io import BytesIO
 
-from pylint.epylint import py_run
+import astroid
+import pylint.lint
+from pylint.reporters.json import JSONReporter
 from pyls import hookimpl, lsp
 
 
@@ -61,13 +64,14 @@ class PylintLinter(object):
         path = document.path
         if sys.platform.startswith('win'):
             path = path.replace('\\', '/')
-        out, _err = py_run(
-            '{} -f json {}'.format(path, flags), return_std=True)
+        bytesStream = BytesIO()
+        # clear cache before every run as docs recommend
+        astroid.builder.MANAGER.astroid_cache.clear()
+        pylint.lint.Run([path], reporter=JSONReporter(bytesStream), exit=False)
 
         # pylint prints nothing rather than [] when there are no diagnostics.
         # json.loads will not parse an empty string, so just return.
-        json_str = out.getvalue()
-        if not json_str.strip():
+        if not bytesStream.tell():
             cls.last_diags[document.path] = []
             return []
 
@@ -93,7 +97,8 @@ class PylintLinter(object):
         #  * refactor
         #  * warning
         diagnostics = []
-        for diag in json.loads(json_str):
+        bytesStream.seek(0)
+        for diag in json.load(bytesStream):
             # pylint lines index from 1, pyls lines index from 0
             line = diag['line'] - 1
             # But both index columns from 0
