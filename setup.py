@@ -35,8 +35,8 @@ setup(
         'configparser; python_version<"3.0"',
         'future>=0.14.0',
         'futures; python_version<"3.2"',
-        'jedi>=0.12',
-        'python-jsonrpc-server',
+        'jedi>=0.13.2',
+        'python-jsonrpc-server>=0.1.0',
         'pluggy'
     ],
 
@@ -63,7 +63,7 @@ setup(
         'pylint': ['pylint'],
         'rope': ['rope>0.10.5'],
         'yapf': ['yapf'],
-        'test': ['tox', 'versioneer', 'pytest', 'mock', 'pytest-cov', 'coverage'],
+        'test': ['versioneer', 'pylint', 'pytest', 'mock', 'pytest-cov', 'coverage'],
     },
 
     # To provide executable scripts, use entry points in preference to the
